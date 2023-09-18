@@ -1,5 +1,6 @@
 import ProductCard from "@/components/productCard";
-import type { Product } from "@/types/product";
+import { dbConnect } from "@/lib/db";
+import ProductModel, { type Product } from "@/models/product";
 import type { StylesObj } from "@/types/styles";
 import { Box } from "@mui/material";
 import { QueryClient, dehydrate, useQuery } from "@tanstack/react-query";
@@ -42,10 +43,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     throw new Error("this page requires product id");
   }
   const queryClient = new QueryClient();
-
-  await queryClient.prefetchQuery(["products", productId], () =>
-    getProduct(productId),
-  );
+  await dbConnect();
+  await queryClient.prefetchQuery({
+    queryKey: ["products", productId],
+    queryFn: () => ProductModel.getById(productId),
+  });
   return {
     props: {
       dehydratedState: dehydrate(queryClient),

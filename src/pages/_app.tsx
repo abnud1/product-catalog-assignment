@@ -1,9 +1,10 @@
+import "@/styles/global.css";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import {
-  Hydrate,
+  HydrationBoundary,
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
@@ -18,9 +19,9 @@ export default function App({ Component, pageProps }: AppProps) {
   const queryClientReference = useRef(new QueryClient());
   return (
     <QueryClientProvider client={queryClientReference.current}>
-      <Hydrate state={(pageProps as PageProps).dehydratedState}>
+      <HydrationBoundary state={(pageProps as PageProps).dehydratedState}>
         <Component {...pageProps} />
-      </Hydrate>
+      </HydrationBoundary>
     </QueryClientProvider>
   );
 }
