@@ -71,7 +71,6 @@ export default function ProductsCatalog() {
       queryKey: ["products", initialFilters] as [string, ProductFiltersType],
       queryFn: getProducts,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-      initialPageParam: undefined as ProductsCursor | undefined,
     });
   const allProducts = data ? data.pages.flatMap((d) => d.products) : [];
   const parentRef = useRef<HTMLDivElement | null>(null);
@@ -196,12 +195,10 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     queryKey: ["products", query],
     queryFn: ({ pageParam }) =>
       ProductModel.getProducts({
-        cursor: pageParam,
+        cursor: pageParam as ProductsCursor | undefined,
         ...query,
       }),
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    initialPageParam: undefined as ProductsCursor | undefined,
-    pages: 1,
   });
   return {
     props: {
