@@ -67,6 +67,35 @@ const ProductSchema = new mongoose.Schema<Product>(
             },
           ];
         }
+        if (query?.name && !query.search) {
+          findQuery.name = { $regex: new RegExp(query.name) };
+        }
+
+        if (query?.minPrice) {
+          if (findQuery.$and) {
+            findQuery.$and.push({ price: { $gte: query.minPrice } });
+          } else {
+            findQuery.price = { $gte: query.minPrice };
+          }
+        }
+        if (query?.maxPrice) {
+          if (findQuery.$and) {
+            const priceQuery = findQuery.$and.find(
+              (q) => q.price !== undefined,
+            );
+            if (priceQuery) {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+              priceQuery.price.$lte = query.maxPrice;
+            } else {
+              findQuery.$and.push({ price: { $lte: query.maxPrice } });
+            }
+          } else if (findQuery.price) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            findQuery.price.$lte = query.maxPrice;
+          } else {
+            findQuery.price = { $lte: query.maxPrice };
+          }
+        }
         if (query?.cursor) {
           const cursorQuery =
             Array.isArray(query.cursor) && query.orderBy
@@ -91,38 +120,10 @@ const ProductSchema = new mongoose.Schema<Product>(
             }
           }
         }
-        if (query?.name) {
-          findQuery.name = { $regex: new RegExp(query.name) };
-        }
-        if (query?.minPrice) {
-          if (findQuery.$and) {
-            findQuery.$and.push({ price: { $gte: query.minPrice } });
-          } else {
-            findQuery.price = { $gte: query.minPrice };
-          }
-        }
-        if (query?.maxPrice) {
-          if (findQuery.$and) {
-            const priceQuery = findQuery.$and.find(
-              (q) => q.price !== undefined,
-            );
-            if (priceQuery) {
-              priceQuery["$lte"] = query.maxPrice;
-            } else {
-              findQuery.$and.push({ price: { $lte: query.maxPrice } });
-            }
-          } else if (findQuery.price) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            findQuery.price.$lte = query.maxPrice;
-          } else {
-            findQuery.price = { $lte: query.maxPrice };
-          }
-        }
 
         const sortQuery = query?.orderBy
           ? {
               [query.orderBy]: sortToNumber(query.orderBySort),
-              _id: sortToNumber(query.orderBySort),
             }
           : { _id: 1 };
         const productDocs = await this.find(findQuery)

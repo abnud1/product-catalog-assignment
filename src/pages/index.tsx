@@ -1,10 +1,11 @@
 import ProductCard, { cardHeight, cardWidth } from "@/components/productCard";
-import ProductFilters from "@/components/productsFilters";
+import ProductFilters, {
+  type ProductFiltersType,
+} from "@/components/productsFilters";
 import { dbConnect } from "@/lib/db";
 import type { Paginated } from "@/models/common";
 import ProductModel, {
   type Product,
-  type ProductQuery,
   type ProductsCursor,
 } from "@/models/product";
 import type { StylesObj } from "@/types/styles";
@@ -24,8 +25,8 @@ import { useRouter } from "next/router";
 import type { ParsedUrlQuery } from "node:querystring";
 import Nullify from "nullify-undefined/dist/cjs/index";
 import React, { useEffect, useRef, useState } from "react";
-function queryToFilters(query: ParsedUrlQuery): Omit<ProductQuery, "cursor"> {
-  const result = { ...query } as Omit<ProductQuery, "cursor">;
+function queryToFilters(query: ParsedUrlQuery): ProductFiltersType {
+  const result = { ...query } as ProductFiltersType;
   result.minPrice = query["minPrice"] ? Number(query["minPrice"]) : undefined;
   result.maxPrice = query["maxPrice"] ? Number(query["maxPrice"]) : undefined;
   return result;
@@ -33,7 +34,10 @@ function queryToFilters(query: ParsedUrlQuery): Omit<ProductQuery, "cursor"> {
 async function getProducts({
   pageParam,
   queryKey,
-}: QueryFunctionContext<[string, ParsedUrlQuery], ProductsCursor | undefined>) {
+}: QueryFunctionContext<
+  [string, ProductFiltersType],
+  ProductsCursor | undefined
+>) {
   const urlSearch = new URLSearchParams(queryKey[1] as Record<string, string>);
   if (pageParam) {
     urlSearch.set("cursor", JSON.stringify(pageParam));
@@ -59,21 +63,20 @@ const styles = {
     marginBottom: "0.5rem",
   },
 } satisfies StylesObj;
-
 export default function ProductsCatalog() {
   const router = useRouter();
+  const initialFilters = queryToFilters(router.query);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery({
-      queryKey: ["products", router.query] as [string, ParsedUrlQuery],
+      queryKey: ["products", initialFilters] as [string, ProductFiltersType],
       queryFn: getProducts,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
       initialPageParam: undefined as ProductsCursor | undefined,
     });
   const allProducts = data ? data.pages.flatMap((d) => d.products) : [];
   const parentRef = useRef<HTMLDivElement | null>(null);
-  const [filters, setFilters] = useState<Omit<ProductQuery, "cursor">>(
-    queryToFilters(router.query),
-  );
+
+  const [filters, setFilters] = useState<ProductFiltersType>(initialFilters);
   const rowVirtualizer = useWindowVirtualizer({
     count: Math.ceil(
       (hasNextPage ? allProducts.length + 1 : allProducts.length) / 6,
@@ -83,7 +86,7 @@ export default function ProductsCatalog() {
 
   const columnVirtualizer = useWindowVirtualizer({
     horizontal: true,
-    count: 6,
+    count: Math.min(6, allProducts.length),
     estimateSize: () => cardWidth,
   });
 
@@ -188,13 +191,7 @@ export default function ProductsCatalog() {
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   await dbConnect();
   const queryClient = new QueryClient();
-  const query = { ...ctx.query } as ProductQuery;
-  query.maxPrice = ctx.query["maxPrice"]
-    ? Number(ctx.query["maxPrice"])
-    : undefined;
-  query.minPrice = ctx.query["minPrice"]
-    ? Number(ctx.query["minPrice"])
-    : undefined;
+  const query = queryToFilters(ctx.query);
   await queryClient.prefetchInfiniteQuery({
     queryKey: ["products", query],
     queryFn: ({ pageParam }) =>

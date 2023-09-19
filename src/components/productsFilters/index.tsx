@@ -22,8 +22,10 @@ import type React from "react";
 import { useId, useState } from "react";
 import styles from "./styles";
 
+export type ProductFiltersType = Omit<ProductQuery, "cursor">;
+
 interface ProductFiltersProps {
-  filters: Omit<ProductQuery, "cursor">;
+  filters: ProductFiltersType;
   setFilters: React.Dispatch<
     React.SetStateAction<Omit<ProductQuery, "cursor">>
   >;
@@ -85,9 +87,9 @@ export default function ProductFilters({
           />
           <Typography variant="caption">Price Range</Typography>
           <Slider
-            value={[filters.minPrice ?? 0, filters.maxPrice ?? 400]}
+            value={[filters.minPrice ?? 0, filters.maxPrice ?? 500]}
             min={0}
-            max={400}
+            max={500}
             valueLabelDisplay="auto"
             onChange={(_ev, value) => {
               setFilters((oldFilters) => ({
