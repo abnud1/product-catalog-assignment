@@ -3,15 +3,8 @@ import { dbConnect } from "@/lib/db";
 import ProductModel, { type Product } from "@/models/product";
 import type { StylesObj } from "@/types/styles";
 import { Box } from "@mui/material";
-import { QueryClient, dehydrate, useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import mongoose from "mongoose";
 import type { GetServerSideProps } from "next";
-import { useRouter } from "next/router";
-
-async function getProduct(productId: string) {
-  const res = await axios.get<Product>(`/products/${productId}`);
-  return res.data;
-}
 
 const styles = {
   productContainer: {
@@ -22,35 +15,42 @@ const styles = {
     height: "100vh",
   },
 } satisfies StylesObj;
-
-export default function ProductDetails() {
-  const router = useRouter();
-  const productId = router.query["id"] as string;
-  const { data } = useQuery({
-    queryKey: ["products", productId],
-    queryFn: () => getProduct(productId),
-  });
-  return data ? (
+interface ProductDetailsProps {
+  product: Product | null;
+}
+export default function ProductDetails({ product }: ProductDetailsProps) {
+  return product ? (
     <Box sx={styles.productContainer}>
-      <ProductCard product={data} />
+      <ProductCard product={product} />
     </Box>
-  ) : null;
+  ) : (
+    <>404 Not Found</>
+  );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps<
+  ProductDetailsProps
+> = async (context) => {
   const productId = context.params?.["id"] as string | undefined;
   if (!productId) {
     throw new Error("this page requires product id");
   }
-  const queryClient = new QueryClient();
   await dbConnect();
-  await queryClient.prefetchQuery({
-    queryKey: ["products", productId],
-    queryFn: () => ProductModel.getById(productId),
-  });
-  return {
-    props: {
-      dehydratedState: dehydrate(queryClient),
-    },
-  };
+  try {
+    const product = await ProductModel.getById(productId);
+    return {
+      props: {
+        product: product ?? null,
+      },
+    };
+  } catch (error) {
+    if (error instanceof mongoose.MongooseError && error.name === "CastError") {
+      return {
+        props: {
+          product: null,
+        },
+      };
+    }
+    throw error;
+  }
 };
