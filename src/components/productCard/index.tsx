@@ -7,7 +7,6 @@ import {
   type CardProps,
 } from "@mui/material";
 import type { ForwardedRef } from "react";
-import { forwardRef } from "react";
 import styles from "./styles";
 
 const numberFormatter = Intl.NumberFormat(["en"], {
@@ -20,7 +19,7 @@ export const cardWidth = 208;
 interface ProductCardProps extends CardProps {
   product: Product;
 }
-function ProductCard(
+export default function ProductCard(
   { product, ...props }: ProductCardProps,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
@@ -41,4 +40,3 @@ function ProductCard(
     </Card>
   );
 }
-export default forwardRef<HTMLDivElement, ProductCardProps>(ProductCard);

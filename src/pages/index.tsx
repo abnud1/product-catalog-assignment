@@ -17,7 +17,7 @@ import {
   type DehydratedState,
   type QueryFunctionContext,
 } from "@tanstack/react-query";
-import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import axios from "axios";
 import type { GetServerSideProps } from "next";
 import Link from "next/link";
@@ -76,17 +76,19 @@ export default function ProductsCatalog() {
   const parentRef = useRef<HTMLDivElement | null>(null);
 
   const [filters, setFilters] = useState<ProductFiltersType>(initialFilters);
-  const rowVirtualizer = useWindowVirtualizer({
+  const rowVirtualizer = useVirtualizer({
     count: Math.ceil(
       (hasNextPage ? allProducts.length + 1 : allProducts.length) / 6,
     ),
     estimateSize: () => cardHeight,
+    getScrollElement: () => parentRef.current,
   });
 
-  const columnVirtualizer = useWindowVirtualizer({
+  const columnVirtualizer = useVirtualizer({
     horizontal: true,
     count: Math.min(6, allProducts.length),
     estimateSize: () => cardWidth,
+    getScrollElement: () => parentRef.current,
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();
@@ -173,7 +175,6 @@ export default function ProductsCatalog() {
                           virtualRow.index * virtualColumns.length +
                           virtualColumn.index
                         }
-                        ref={rowVirtualizer.measureElement}
                       />
                     </Link>
                   ) : null;
