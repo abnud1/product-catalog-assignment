@@ -1,12 +1,13 @@
 import type { Product } from "@/models/product";
 import {
-  Card,
   CardContent,
   CardMedia,
   Typography,
   type CardProps,
 } from "@mui/material";
+import type { MotionProps } from "framer-motion";
 import type { ForwardedRef } from "react";
+import AnimatedCard from "../AnimatedCard";
 import styles from "./styles";
 
 const numberFormatter = Intl.NumberFormat(["en"], {
@@ -16,15 +17,16 @@ const numberFormatter = Intl.NumberFormat(["en"], {
 export const cardHeight = 460;
 export const cardWidth = 208;
 
-interface ProductCardProps extends CardProps {
-  product: Product;
-}
+type ProductCardProps = MotionProps &
+  CardProps & {
+    product: Product;
+  };
 export default function ProductCard(
   { product, ...props }: ProductCardProps,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
   return (
-    <Card {...props} sx={styles.productCard} ref={ref}>
+    <AnimatedCard {...props} sx={styles.productCard} ref={ref}>
       <CardMedia
         title={product.name}
         image={product.image}
@@ -37,6 +39,6 @@ export default function ProductCard(
         </Typography>
         <Typography variant="body2">{product.description}</Typography>
       </CardContent>
-    </Card>
+    </AnimatedCard>
   );
 }

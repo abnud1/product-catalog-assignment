@@ -74,20 +74,25 @@ export default function ProductsCatalog() {
     });
   const allProducts = data ? data.pages.flatMap((d) => d.products) : [];
   const parentRef = useRef<HTMLDivElement | null>(null);
-
+  const [hoveredRows, setHoveredRows] = useState<number[]>([]);
+  const [hoveredColumns, setHoveredColumns] = useState<number[]>([]);
+  const [currentHoveredScale, setCurrentHoveredScale] = useState(1);
   const [filters, setFilters] = useState<ProductFiltersType>(initialFilters);
   const rowVirtualizer = useVirtualizer({
     count: Math.ceil(
       (hasNextPage ? allProducts.length + 1 : allProducts.length) / 6,
     ),
-    estimateSize: () => cardHeight,
+    estimateSize: (rowIndex) =>
+      cardHeight * (hoveredRows.includes(rowIndex) ? currentHoveredScale : 1),
     getScrollElement: () => parentRef.current,
   });
 
   const columnVirtualizer = useVirtualizer({
     horizontal: true,
     count: Math.min(6, allProducts.length),
-    estimateSize: () => cardWidth,
+    estimateSize: (columnIndex) =>
+      cardWidth *
+      (hoveredColumns.includes(columnIndex) ? currentHoveredScale : 1),
     getScrollElement: () => parentRef.current,
   });
 
@@ -124,6 +129,14 @@ export default function ProductsCatalog() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
+  useEffect(() => {
+    rowVirtualizer.measure();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hoveredRows, currentHoveredScale]);
+  useEffect(() => {
+    columnVirtualizer.measure();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hoveredColumns, currentHoveredScale]);
   return (
     <Grid container flexDirection="column">
       <ProductFilters
@@ -170,6 +183,61 @@ export default function ProductsCatalog() {
                       href={`/products/${product.id}`}
                     >
                       <ProductCard
+                        onUpdate={(latest) => {
+                          setCurrentHoveredScale(
+                            (latest["scale"] ?? 1) as number,
+                          );
+                        }}
+                        onHoverStart={() => {
+                          setHoveredRows((previosRows) => [
+                            ...previosRows,
+                            virtualRow.index,
+                          ]);
+                          setHoveredColumns((previosColumns) => [
+                            ...previosColumns,
+                            virtualColumn.index,
+                          ]);
+                        }}
+                        onHoverEnd={() => {
+                          setHoveredRows((previosRows) => {
+                            const newRows = [...previosRows];
+                            const index = newRows.indexOf(virtualRow.index);
+                            if (index >= 0) {
+                              newRows.splice(index, 1);
+                              return newRows;
+                            }
+                            return previosRows;
+                          });
+                          setHoveredColumns((previosColumns) => {
+                            const newColumns = [...previosColumns];
+                            const index = newColumns.indexOf(
+                              virtualColumn.index,
+                            );
+                            if (index >= 0) {
+                              newColumns.splice(index, 1);
+                              return newColumns;
+                            }
+                            return previosColumns;
+                          });
+                        }}
+                        whileHover={{
+                          scale: 1.5,
+                          transition: { duration: 0.5 },
+                        }}
+                        initial={{
+                          opacity: 0,
+                          y: 300,
+                        }}
+                        whileInView={{
+                          opacity: 1,
+                          y: 0,
+                          transition: {
+                            type: "spring",
+                            bounce: 0.4,
+                            duration: 0.8,
+                          },
+                        }}
+                        viewport={{ once: true }}
                         product={product}
                         data-index={
                           virtualRow.index * virtualColumns.length +
