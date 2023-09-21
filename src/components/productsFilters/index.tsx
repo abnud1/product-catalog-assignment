@@ -26,9 +26,7 @@ export type ProductFiltersType = Omit<ProductQuery, "cursor">;
 
 interface ProductFiltersProps {
   filters: ProductFiltersType;
-  setFilters: React.Dispatch<
-    React.SetStateAction<Omit<ProductQuery, "cursor">>
-  >;
+  setFilters: React.Dispatch<React.SetStateAction<ProductFiltersType>>;
   containerStyle?: SxProps;
 }
 export default function ProductFilters({
@@ -43,6 +41,7 @@ export default function ProductFilters({
       <Box>
         <TextField
           label="Search"
+          type="search"
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">

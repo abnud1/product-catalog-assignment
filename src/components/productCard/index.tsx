@@ -26,7 +26,12 @@ export default function ProductCard(
   ref: ForwardedRef<HTMLDivElement>,
 ) {
   return (
-    <AnimatedCard {...props} sx={styles.productCard} ref={ref}>
+    <AnimatedCard
+      {...props}
+      sx={styles.productCard}
+      ref={ref}
+      data-testid="card"
+    >
       <CardMedia
         title={product.name}
         image={product.image}

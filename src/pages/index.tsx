@@ -153,8 +153,6 @@ export default function ProductsCatalog() {
               height: `${rowVirtualizer.getTotalSize()}px`,
               width: `${columnVirtualizer.getTotalSize()}px`,
               position: "relative",
-              overflowY: "auto",
-              overflowX: "hidden",
             }}
           >
             {virtualRows.map((virtualRow) => (

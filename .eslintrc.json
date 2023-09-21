@@ -10,19 +10,23 @@
     "plugin:import/recommended",
     "plugin:import/typescript",
     "plugin:@tanstack/eslint-plugin-query/recommended",
+    "plugin:jest/recommended",
+    "plugin:jest/style",
+    "plugin:testing-library/react",
     "next/core-web-vitals",
     "plugin:prettier/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "env": {
     "browser": true,
-    "es2024": true
+    "es2024": true,
+    "jest/globals": true
   },
   "parserOptions": {
     "project": true,
     "tsconfigRootDir": "."
   },
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "jest"],
   "settings": {
     "import/resolver": {
       "typescript": true,
@@ -63,7 +67,6 @@
     "prefer-const": "error",
     "prefer-object-has-own": "error",
     "prefer-template": "error",
-    "require-await": "error",
     "@typescript-eslint/consistent-type-exports": [
       "error",
       {

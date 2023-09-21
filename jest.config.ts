@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires, unicorn/prefer-module
+// eslint-disable-next-line @typescript-eslint/no-var-requires, unicorn/prefer-module
 const nextJest = require("next/jest") as Awaited<
   typeof import("next/jest")
 >["default"];
@@ -11,6 +11,7 @@ const createJestConfig = nextJest({
 // Add any custom config to be passed to Jest
 const customJestConfig = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+  testEnvironment: "jsdom",
 };
 
 // eslint-disable-next-line unicorn/prefer-module
