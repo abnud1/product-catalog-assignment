@@ -21,6 +21,16 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+The products list will probably show `No Product` because the database is empty.
+
+To fix that please run:
+
+```bash
+npm run db:seed
+```
+
+before running the app, it should populate products database with dummy data.
+
 ## Running tests
 
 ```bash
